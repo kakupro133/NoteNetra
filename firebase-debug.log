@@ -1,0 +1,53 @@
+[debug] [2025-09-23T04:36:40.061Z] ----------------------------------------------------------------------
+[debug] [2025-09-23T04:36:40.064Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\user\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js init
+[debug] [2025-09-23T04:36:40.064Z] CLI Version:   14.17.0
+[debug] [2025-09-23T04:36:40.064Z] Platform:      win32
+[debug] [2025-09-23T04:36:40.064Z] Node Version:  v22.18.0
+[debug] [2025-09-23T04:36:40.064Z] Time:          Tue Sep 23 2025 10:06:40 GMT+0530 (India Standard Time)
+[debug] [2025-09-23T04:36:40.065Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-09-23T04:36:40.205Z] Field "/functions/runtime" in "firebase.json" is possibly invalid: must be equal to one of the allowed values
+[debug] [2025-09-23T04:36:40.205Z] Object "/functions" in "firebase.json" is missing required property: {"missingProperty":"remoteSource"}
+[debug] [2025-09-23T04:36:40.206Z] Field "/functions" in "firebase.json" is possibly invalid: must be array
+[debug] [2025-09-23T04:36:40.206Z] Field "/functions" in "firebase.json" is possibly invalid: must match a schema in anyOf
+[debug] [2025-09-23T04:36:40.208Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-09-23T04:36:40.208Z] > authorizing via signed-in user (kakupro1222@gmail.com)
+[debug] [2025-09-23T04:36:40.209Z] Field "/functions/runtime" in "firebase.json" is possibly invalid: must be equal to one of the allowed values
+[debug] [2025-09-23T04:36:40.209Z] Object "/functions" in "firebase.json" is missing required property: {"missingProperty":"remoteSource"}
+[debug] [2025-09-23T04:36:40.209Z] Field "/functions" in "firebase.json" is possibly invalid: must be array
+[debug] [2025-09-23T04:36:40.209Z] Field "/functions" in "firebase.json" is possibly invalid: must match a schema in anyOf
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  C:\Users\user\Desktop\NoteNetra
+
+Before we get started, keep in mind:
+
+  * You are initializing within an existing Firebase project directory
+
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] but for now we'll just set up a default project.
+[info] 
+[debug] [2025-09-23T04:36:48.908Z] Using project from CLI flag: notenetra
+[debug] [2025-09-23T04:36:48.909Z] Checked if tokens are valid: true, expires at: 1758605740833
+[debug] [2025-09-23T04:36:48.909Z] Checked if tokens are valid: true, expires at: 1758605740833
+[debug] [2025-09-23T04:36:48.910Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/notenetra [none]
+[debug] [2025-09-23T04:36:49.409Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/notenetra 403
+[debug] [2025-09-23T04:36:49.409Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/notenetra {"error":{"code":403,"message":"The caller does not have permission","status":"PERMISSION_DENIED"}}
+[debug] [2025-09-23T04:36:49.409Z] Request to https://firebase.googleapis.com/v1beta1/projects/notenetra had HTTP Error: 403, The caller does not have permission
+[debug] [2025-09-23T04:36:49.540Z] FirebaseError: Request to https://firebase.googleapis.com/v1beta1/projects/notenetra had HTTP Error: 403, The caller does not have permission
+    at responseToError (C:\Users\user\AppData\Roaming\npm\node_modules\firebase-tools\lib\responseToError.js:52:12)
+    at RetryOperation._fn (C:\Users\user\AppData\Roaming\npm\node_modules\firebase-tools\lib\apiv2.js:312:77)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[error] 
+[error] Error: Failed to get Firebase project notenetra. Please make sure the project exists and your account has permission to access it.
