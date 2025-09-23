@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useAuthState } from 'react-firebase-hooks/auth';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { Card } from '../../components/ui/Card';
