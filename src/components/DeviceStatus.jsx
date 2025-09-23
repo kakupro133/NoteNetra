@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import supabase from '../supabase';
+// import supabase from '../supabase'; // Supabase removed
 
 const DeviceStatus = ({ deviceId }) => {
   const [status, setStatus] = useState('unknown');
@@ -7,67 +7,32 @@ const DeviceStatus = ({ deviceId }) => {
   const [latestTransaction, setLatestTransaction] = useState(null); // New state for latest transaction
 
   useEffect(() => {
-    // Use the hardcoded device ID sent by the ESP code
-    const currentDeviceId = deviceId || "ESP32_DevKitV1"; 
-
-    if (!currentDeviceId) return;
-
-    // --- Device Status Monitoring ---
-    // Supabase real-time listeners for device status and last_online
-    const statusSubscription = supabase
-      .channel('device_status')
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'devices', filter: `id=eq.${currentDeviceId}` },
-        payload => {
-          setStatus(payload.new.status || 'offline');
-        }
-      )
-      .subscribe();
-
-    const lastOnlineSubscription = supabase
-      .channel('device_last_online')
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'devices', filter: `id=eq.${currentDeviceId}` },
-        payload => {
-          setLastOnline(payload.new.last_online ? new Date(payload.new.last_online) : null);
-        }
-      )
-      .subscribe();
-
-    // --- Transaction Monitoring ---
-    // Supabase real-time listener for latest transaction
-    const transactionsSubscription = supabase
-      .channel('latest_transaction')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'transactions', filter: `device_id=eq.${currentDeviceId}` },
-        payload => {
-          setLatestTransaction(payload.new);
-        }
-      )
-      .subscribe();
-
-    // Initial fetch for status and last_online
-    const fetchInitialData = async () => {
-      const { data: statusData } = await supabase.from('devices').select('status').eq('id', currentDeviceId).single();
-      if (statusData) setStatus(statusData.status || 'offline');
-
-      const { data: lastOnlineData } = await supabase.from('devices').select('last_online').eq('id', currentDeviceId).single();
-      if (lastOnlineData) setLastOnline(lastOnlineData.last_online ? new Date(lastOnlineData.last_online) : null);
-
-      const { data: latestTxData } = await supabase.from('transactions').select('*').eq('device_id', currentDeviceId).order('timestamp', { ascending: false }).limit(1).single();
-      if (latestTxData) setLatestTransaction(latestTxData);
+    // Since Supabase is removed, we'll use dummy data or a simplified status
+    // For demonstration, let's assume the device is always online or use a basic timer
+    const dummyStatus = 'online';
+    const dummyLastOnline = new Date();
+    const dummyLatestTransaction = {
+      type: 'credit',
+      note: 'Dummy Transaction',
+      amount: 1000,
+      timestamp: new Date().toLocaleString(),
     };
-    fetchInitialData();
 
-    return () => {
-      statusSubscription.unsubscribe();
-      lastOnlineSubscription.unsubscribe();
-      transactionsSubscription.unsubscribe();
-    };
-  }, [deviceId]);
+    setStatus(dummyStatus);
+    setLastOnline(dummyLastOnline);
+    setLatestTransaction(dummyLatestTransaction);
+
+    // You can add a simple interval for a dynamic feel if needed
+    const interval = setInterval(() => {
+      // Simulate status changes or new transactions
+      // This is purely for UI demonstration without a backend
+      setStatus(prevStatus => (prevStatus === 'online' ? 'offline' : 'online'));
+      setLastOnline(new Date());
+    }, 5000); // Toggle status every 5 seconds
+
+    return () => clearInterval(interval);
+
+  }, [deviceId]); // Re-run effect if deviceId prop changes
 
   return (
     <div className="flex flex-col space-y-2 text-sm">
