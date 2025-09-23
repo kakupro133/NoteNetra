@@ -3,8 +3,8 @@ import { useParams } from 'react-router-dom';
 import AppIcon from '../../../components/AppIcon';
 import Input from '../../../components/ui/Input';
 import Button from '../../../components/ui/Button';
-import { Card, CardHeader, CardTitle, CardContent } from '../../ui/Card';
-import { Avatar, AvatarFallback, AvatarImage } from '../../ui/Avatar';
+import { Card, CardHeader, CardTitle, CardContent } from 'src/components/ui/Card';
+import { Avatar, AvatarFallback, AvatarImage } from 'src/components/ui/Avatar';
 
 const PrivateChatWindow = () => {
   const { chatId } = useParams(); // Get chat ID from URL parameters

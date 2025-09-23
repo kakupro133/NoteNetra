@@ -4,7 +4,7 @@ import AppIcon from '../../components/AppIcon';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
-import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/Avatar';
+import { Avatar, AvatarFallback, AvatarImage } from 'src/components/ui/Avatar';
 
 const CommunityChat = () => {
   const [user] = useState({ uid: 'u1', displayName: 'Test User', email: 'test@example.com' }); // Dummy user

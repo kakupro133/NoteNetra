@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 import Icon from '../../../components/AppIcon';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/Card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'src/components/ui/Card';
 import Button from '../../../components/ui/Button';
 import { demoData, formatCurrency, formatDate } from '../../../utils/demoData';
 import { computeCreditScoreFromTransactions } from '../../../utils/msmeScore';

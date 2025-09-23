@@ -2,8 +2,8 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
-import CustomLogo from '../../components/ui/CustomLogo';
-import LogoSelector from '../../components/ui/LogoSelector';
+import CustomLogo from 'src/components/ui/CustomLogo';
+import LogoSelector from 'src/components/ui/LogoSelector';
 import useTheme from '../../../hooks/useTheme';
 import { LOGO_CONFIG } from '../../../utils/logoConfig';
 

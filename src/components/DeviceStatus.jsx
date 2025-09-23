@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { database } from '../firebase';
-import { ref, onValue, query, limitToLast } from 'firebase/database';
+import supabase from '../supabase';
 
 const DeviceStatus = ({ deviceId }) => {
   const [status, setStatus] = useState('unknown');
@@ -13,42 +12,62 @@ const DeviceStatus = ({ deviceId }) => {
 
     if (!currentDeviceId) return;
 
-    // --- Device Status Monitoring (existing logic) ---
-    const deviceStatusRef = ref(database, `devices/${currentDeviceId}/status`);
-    const deviceLastOnlineRef = ref(database, `devices/${currentDeviceId}/last_online`);
+    // --- Device Status Monitoring ---
+    // Supabase real-time listeners for device status and last_online
+    const statusSubscription = supabase
+      .channel('device_status')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'devices', filter: `id=eq.${currentDeviceId}` },
+        payload => {
+          setStatus(payload.new.status || 'offline');
+        }
+      )
+      .subscribe();
 
-    const unsubscribeStatus = onValue(deviceStatusRef, (snapshot) => {
-      const newStatus = snapshot.val();
-      setStatus(newStatus ? newStatus : 'offline');
-    });
+    const lastOnlineSubscription = supabase
+      .channel('device_last_online')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'devices', filter: `id=eq.${currentDeviceId}` },
+        payload => {
+          setLastOnline(payload.new.last_online ? new Date(payload.new.last_online) : null);
+        }
+      )
+      .subscribe();
 
-    const unsubscribeLastOnline = onValue(deviceLastOnlineRef, (snapshot) => {
-      const timestamp = snapshot.val();
-      setLastOnline(timestamp ? new Date(timestamp) : null);
-    });
+    // --- Transaction Monitoring ---
+    // Supabase real-time listener for latest transaction
+    const transactionsSubscription = supabase
+      .channel('latest_transaction')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'transactions', filter: `device_id=eq.${currentDeviceId}` },
+        payload => {
+          setLatestTransaction(payload.new);
+        }
+      )
+      .subscribe();
 
-    // --- Transaction Monitoring (new logic) ---
-    // Listen to the 'transactions/esp' path for the latest transaction
-    const transactionsRef = ref(database, 'transactions/esp');
-    const latestTransactionQuery = query(transactionsRef, limitToLast(1));
+    // Initial fetch for status and last_online
+    const fetchInitialData = async () => {
+      const { data: statusData } = await supabase.from('devices').select('status').eq('id', currentDeviceId).single();
+      if (statusData) setStatus(statusData.status || 'offline');
 
-    const unsubscribeTransactions = onValue(latestTransactionQuery, (snapshot) => {
-      if (snapshot.exists()) {
-        // Get the single latest transaction
-        snapshot.forEach((childSnapshot) => {
-          setLatestTransaction(childSnapshot.val());
-        });
-      } else {
-        setLatestTransaction(null);
-      }
-    });
+      const { data: lastOnlineData } = await supabase.from('devices').select('last_online').eq('id', currentDeviceId).single();
+      if (lastOnlineData) setLastOnline(lastOnlineData.last_online ? new Date(lastOnlineData.last_online) : null);
+
+      const { data: latestTxData } = await supabase.from('transactions').select('*').eq('device_id', currentDeviceId).order('timestamp', { ascending: false }).limit(1).single();
+      if (latestTxData) setLatestTransaction(latestTxData);
+    };
+    fetchInitialData();
 
     return () => {
-      unsubscribeStatus();
-      unsubscribeLastOnline();
-      unsubscribeTransactions(); // Clean up new listener
+      statusSubscription.unsubscribe();
+      lastOnlineSubscription.unsubscribe();
+      transactionsSubscription.unsubscribe();
     };
-  }, [deviceId]); // Re-run effect if deviceId prop changes
+  }, [deviceId]);
 
   return (
     <div className="flex flex-col space-y-2 text-sm">

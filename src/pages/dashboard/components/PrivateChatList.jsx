@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card } from '../../ui/Card';
-import { Avatar, AvatarFallback, AvatarImage } from '../../ui/Avatar';
+import { Card } from 'src/components/ui/Card';
+import { Avatar, AvatarFallback, AvatarImage } from 'src/components/ui/Avatar';
 import Button from '../../../components/ui/Button'; 
 import Input from '../../../components/ui/Input'; 
 import AppIcon from '../../../components/AppIcon';
