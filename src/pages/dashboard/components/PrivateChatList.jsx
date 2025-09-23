@@ -2,71 +2,70 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '../../ui/Card';
 import { Avatar, AvatarFallback, AvatarImage } from '../../ui/Avatar';
-import Button from '../../../components/ui/Button'; // Corrected import path and default import
-import Input from '../../../components/ui/Input'; // Corrected import path and default import
+import Button from '../../../components/ui/Button'; 
+import Input from '../../../components/ui/Input'; 
 import AppIcon from '../../../components/AppIcon';
-import { serverTimestamp } from 'firebase/firestore';
+// Removed: import { serverTimestamp } from 'firebase/firestore';
 
 const PrivateChatList = () => {
-  const [user] = useAuthState(auth);
-  const [users, setUsers] = useState([]);
+  // Using dummy user and chat data since Firebase is removed
+  const [user] = useState({ uid: 'u1', displayName: 'Test User', email: 'test@example.com' });
+  const [users, setUsers] = useState([
+    { id: 'u2', displayName: 'Alice', email: 'alice@example.com' },
+    { id: 'u3', displayName: 'Bob', email: 'bob@example.com' },
+  ]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [chats, setChats] = useState([]);
+  const [chats, setChats] = useState([
+    { id: 'chat1', participants: ['u1', 'u2'], lastMessageText: 'Hello, how can I help you?', lastMessageAt: new Date(), otherParticipantId: 'u2' },
+    { id: 'chat2', participants: ['u1', 'u3'], lastMessageText: 'Meeting at 3 PM', lastMessageAt: new Date(Date.now() - 3600000), otherParticipantId: 'u3' },
+  ]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!user) return;
+    // Simulate fetching users (for starting new chats)
+    // In a real app, you'd fetch from your Supabase backend
+    const dummyAllUsers = [
+      { id: 'u1', displayName: 'Test User', email: 'test@example.com' },
+      { id: 'u2', displayName: 'Alice', email: 'alice@example.com' },
+      { id: 'u3', displayName: 'Bob', email: 'bob@example.com' },
+      { id: 'u4', displayName: 'Charlie', email: 'charlie@example.com' },
+    ];
+    setUsers(dummyAllUsers.filter(u => u.id !== user.uid)); // Filter out the current user
 
-    // Fetch all users to enable starting new chats
-    const usersQuery = query(collection(db, 'users'));
-    const unsubscribeUsers = onSnapshot(usersQuery, (snapshot) => {
-      setUsers(snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })).filter(u => u.id !== user.uid)); // Filter out the current user
-    });
+    // Simulate fetching existing private chats
+    // In a real app, you'd fetch from your Supabase backend
+    const dummyExistingChats = [
+      { id: 'chat1', participants: ['u1', 'u2'], lastMessageText: 'Hello, how can I help you?', lastMessageAt: new Date(), otherParticipantId: 'u2' },
+      { id: 'chat2', participants: ['u1', 'u3'], lastMessageText: 'Meeting at 3 PM', lastMessageAt: new Date(Date.now() - 3600000), otherParticipantId: 'u3' },
+    ];
+    setChats(dummyExistingChats.map(chat => ({
+      ...chat,
+      otherParticipantId: chat.participants.find(pId => pId !== user.uid)
+    })));
 
-    // Fetch existing private chats for the current user
-    const chatsQuery = query(
-      collection(db, 'chats'),
-      where('participants', 'array-contains', user.uid)
-    );
-    const unsubscribeChats = onSnapshot(chatsQuery, (snapshot) => {
-      setChats(snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })));
-    });
-
-    return () => {
-      unsubscribeUsers();
-      unsubscribeChats();
-    };
   }, [user]);
 
   const handleStartChat = async (targetUserId) => {
     if (!user) return;
 
-    const participants = [user.uid, targetUserId].sort(); // Ensure consistent order
-    const existingChatQuery = query(
-      collection(db, 'chats'),
-      where('participants', '==', participants)
+    // Simulate checking for existing chat or creating a new one
+    // In a real app, this would involve your Supabase backend
+    const participants = [user.uid, targetUserId].sort();
+    const existingChat = chats.find(chat => 
+      JSON.stringify(chat.participants.sort()) === JSON.stringify(participants)
     );
 
-    const querySnapshot = await getDocs(existingChatQuery);
-
     let chatId;
-    if (!querySnapshot.empty) {
-      chatId = querySnapshot.docs[0].id;
+    if (existingChat) {
+      chatId = existingChat.id;
     } else {
-      // Create a new chat
-      const newChatRef = await addDoc(collection(db, 'chats'), {
-        participants: participants,
-        createdAt: serverTimestamp(),
-        lastMessageAt: serverTimestamp(), // Initialize with creation time
-        lastMessageText: '',
-      });
-      chatId = newChatRef.id;
+      // Simulate creating a new chat ID
+      chatId = `chat-${participants[0]}-${participants[1]}`;
+      // Add dummy new chat to state for immediate display (optional)
+      setChats(prevChats => [
+        ...prevChats,
+        { id: chatId, participants, lastMessageText: '', lastMessageAt: new Date(), otherParticipantId: targetUserId }
+      ]);
     }
 
     navigate(`/dashboard/private-chat/${chatId}`);
@@ -76,15 +75,6 @@ const PrivateChatList = () => {
     u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (u.displayName && u.displayName.toLowerCase().includes(searchTerm.toLowerCase()))
   );
-
-  // if (loading || !user) return <p>Loading chat list...</p>;
-  // if (error) return <p>Error: {error.message}</p>;
-
-  // Dummy chat data
-  const dummyChats = [
-    { id: 'chat1', name: 'Customer Support', lastMessage: 'Hello, how can I help you?', timestamp: new Date() },
-    { id: 'chat2', name: 'Admin Team', lastMessage: 'Meeting at 3 PM', timestamp: new Date(Date.now() - 3600000) },
-  ];
 
   return (
     <div className="flex flex-col h-full bg-card text-card-foreground shadow-lg rounded-lg">
@@ -104,30 +94,41 @@ const PrivateChatList = () => {
         {filteredUsers.length > 0 ? (
           filteredUsers.map((u) => (
             <Card key={u.id} className="p-3 flex items-center justify-between">
-              <div>
-                <p className="font-medium">{u.displayName || u.email}</p>
-                <p className="text-sm text-muted-foreground">{u.email}</p> {/* Keep email for clarity here */}
+              <div className="flex items-center space-x-3">
+                <Avatar>
+                  <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${u.displayName || u.email}`} />
+                  <AvatarFallback>{(u.displayName || u.email).substring(0, 2).toUpperCase()}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-medium">{u.displayName || u.email}</p>
+                  <p className="text-sm text-muted-foreground">{u.email}</p>
+                </div>
               </div>
               <Button onClick={() => handleStartChat(u.id)}>Chat</Button>
             </Card>
           ))
         ) : (
-          <p className="text-muted-foreground">No users found or no existing chats.</p>
+          <p className="text-muted-foreground">No users found for new chats.</p>
         )}
 
         {chats.length > 0 && (
           <>
             <h3 className="text-xl font-bold mt-6 mb-3">Your Chats</h3>
             {chats.map((chat) => {
-              const otherParticipantId = chat.participants.find(pId => pId !== user.uid);
-              const otherParticipant = users.find(u => u.id === otherParticipantId);
+              const otherParticipant = users.find(u => u.id === chat.otherParticipantId);
               return (
                 <Card key={chat.id} className="p-3 flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">{otherParticipant?.displayName || otherParticipant?.email || 'Unknown User'}</p>
-                    <p className="text-sm text-muted-foreground">Last message: {chat.lastMessageText || 'No messages yet'}</p> {/* Use lastMessageText, which stores senderName */}
+                  <div className="flex items-center space-x-3">
+                    <Avatar>
+                      <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${otherParticipant?.displayName || otherParticipant?.email || 'Unknown User'}`} />
+                      <AvatarFallback>{(otherParticipant?.displayName || otherParticipant?.email || '??').substring(0, 2).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium">{otherParticipant?.displayName || otherParticipant?.email || 'Unknown User'}</p>
+                      <p className="text-sm text-muted-foreground">Last message: {chat.lastMessageText || 'No messages yet'}</p>
+                    </div>
                   </div>
-                  <Button onClick={() => handleStartChat(chat.id)}>Open Chat</Button> {/* This will open the existing chat */}
+                  <Button onClick={() => navigate(`/dashboard/private-chat/${chat.id}`)}>Open Chat</Button>
                 </Card>
               );
             })}
