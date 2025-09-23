@@ -1,21 +1,20 @@
 #include <Wire.h>
 #include <WiFi.h>
-#include <Firebase_ESP_Client.h>
-#include <Adafruit_TCS34725.h>
+#include "Adafruit_TCS34725.h"
+#include <LiquidCrystal_I2C.h>
 #include <time.h>
+#include "SupabaseArduino.h"
 
 // ------------------ WiFi ------------------
 const char *ssid = "as";
 const char *password = "12345678";
 
 // ------------------ Firebase ------------------
-#define API_KEY "AIzaSyDVjvznBKu1jJYS3STOd-le7Bmn8ToRe1s"
-#define DATABASE_URL "https://notenetra-default-rtdb.firebaseio.com"
-#define PROJECT_ID "notenetra"
+#define SUPABASE_URL "https://ixkehiylalwwjtkcdzvk.supabase.co"
+#define SUPABASE_API_KEY "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4a2VoaXlsYWx3d2p0a2NkenZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg2MDg4MzIsImV4cCI6MjA3NDE4NDgzMn0.wwYN47eGor9YSqnbfmSYsnXHxhEMeBzAbi7wVs-zGz8"
+#define TABLE_NAME "transactions"
 
-FirebaseData fbdo;
-FirebaseAuth auth;
-FirebaseConfig config;
+SUPABASE supabaseClient(SUPABASE_URL, SUPABASE_API_KEY, TABLE_NAME);
 
 String userId = "fxQNVL1gFaeGdGfWUoIi2jNoVJd2"; 
 
@@ -47,17 +46,6 @@ bool debitNotePresent = false;
 bool creditNotePresent = false;
 
 // ------------------ Helper Functions ------------------
-const char *getStatusString(firebase_auth_token_status status) {
-  switch (status) {
-    case token_status_uninitialized: return "uninitialized";
-    case token_status_on_signing: return "on signing";
-    case token_status_on_request: return "on request";
-    case token_status_on_refresh: return "on refresh";
-    case token_status_ready: return "ready";
-    case token_status_error: return "error";
-    default: return "unknown";
-  }
-}
 
 String getTimestamp() {
   time_t now;
@@ -69,54 +57,55 @@ String getTimestamp() {
   return String(buffer);
 }
 
-void sendToFirebase(String type, float amount, String note) {
-  if (Firebase.ready()) {
-    // Use the path structure: transactions/esp/{userId}
-    String transactionPath = "transactions/esp/" + userId;
-    FirebaseJson json;
-    
-    // Create the data structure for the transaction
-    json.set("time", getTimestamp());
-    json.set("type", type);
-    json.set("amount", amount);
-    json.set("mode", "cash");
-    json.set("userID", userId);
+void sendToSupabase(String type, float amount, String note) {
+  // Supabase-Arduino library's insert method takes a JSON string.
+  // We need to construct this string manually or using a JSON library if available.
+  String jsonData = "{";
+  jsonData += "\"time\": \"" + getTimestamp() + "\",";
+  jsonData += "\"type\": \"" + type + "\",";
+  jsonData += "\"amount\": " + String(amount) + ",";
+  jsonData += "\"mode\": \"cash\",";
+  jsonData += "\"userID\": \"" + userId + "\",";
+  jsonData += "\"note\": \"" + note + "\"";
+  jsonData += "}";
 
-    // Use pushJSON to add a new transaction under the specified path
-    if (Firebase.RTDB.pushJSON(&fbdo, transactionPath.c_str(), &json)) {
-      Serial.println("Transaction sent to Firebase successfully");
-      Serial.println("Path: " + transactionPath + "/" + fbdo.pushName()); // Show the full path including the generated key
-      Serial.print("Data: ");
-      Serial.println(json.raw());
-    } else {
-      Serial.println("Error sending to Firebase: " + fbdo.errorReason());
-      Serial.println("Path attempted: " + transactionPath);
-      Serial.print("Error details: ");
-      Serial.println(fbdo.payload());
-    }
+  // Using the SupabaseArduino insert method
+  if (supabaseClient.insert(jsonData)) {
+    Serial.println("Transaction sent to Supabase successfully");
   } else {
-    Serial.println("Firebase not ready!");
+    Serial.println("Error sending to Supabase");
   }
 }
 
-// Updated color detection ranges based on your actual readings
-bool isNote100(uint16_t r, uint16_t g, uint16_t b) {
-  // Based on your readings, 100 Rs note appears to have higher green values
-  return (r >= 30 && r <= 60) && (g >= 50 && g <= 90) && (b >= 40 && b <= 80);
+// ---------- Debit sensor thresholds ----------
+bool isNote100_debit(uint16_t r, uint16_t g, uint16_t b) {
+  return (r >= 1630 && r <= 1700) && (g >= 1640 && g <= 1710) && (b >= 1290 && b <= 1380);
+}
+bool isNote200_debit(uint16_t r, uint16_t g, uint16_t b) {
+  return (r >= 2250 && r <= 2400) && (g >= 1530 && g <= 1600) && (b >= 800 && b <= 900);
+}
+bool isNote500_debit(uint16_t r, uint16_t g, uint16_t b) {
+  return (r >= 1500 && r <= 1580) && (g >= 1480 && g <= 1550) && (b >= 901 && b <= 1000);
 }
 
-bool isNote200(uint16_t r, uint16_t g, uint16_t b) {
-  // 200 Rs note appears to have balanced RGB values
-  return (r >= 20 && r <= 50) && (g >= 30 && g <= 70) && (b >= 30 && b <= 70);
+// ---------- Credit sensor thresholds ----------
+bool isNote100_credit(uint16_t r, uint16_t g, uint16_t b) {
+  return (r >= 1100 && r <= 1200) && (g >= 750 && g <= 850) && (b >= 500 && b <= 600);
+}
+bool isNote200_credit(uint16_t r, uint16_t g, uint16_t b) {
+  return (r >= 2200 && r <= 2400) && (g >= 1450 && g <= 1600 ) && (b >= 750 && b <= 850);
+}
+bool isNote500_credit(uint16_t r, uint16_t g, uint16_t b) {
+  return (r >= 1600 && r <= 1850) && (g >= 1200 && g <= 1450) && (b >= 700 && b <= 810);
 }
 
-bool isNote500(uint16_t r, uint16_t g, uint16_t b) {
-  // 500 Rs note appears to have higher red values
-  return (r >= 40 && r <= 80) && (g >= 30 && g <= 60) && (b >= 30 && b <= 60);
-}
-
-void tokenStatusCallback(TokenInfo info) {
-  Serial.printf("Token info: type = %d, status = %s\n", info.type, getStatusString(info.status));
+// ------------------ LCD Update ------------------
+void updateLCD() {
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Bal: Rs "); lcd.print(total,0);
+  lcd.setCursor(0,1);
+  lcd.print("100:" + String(count_100) + " 200:" + String(count_200) + " 500:" + String(count_500));
 }
 
 // ------------------ Setup ------------------
@@ -124,152 +113,70 @@ void setup() {
   Serial.begin(115200);
   Serial.println("\nStarting Smart Currency Counter...");
 
-  // Initialize I2C for debit and credit sensors
-  I2C_debit.begin(13, 14);
-  I2C_credit.begin(21, 22);
+  // LCD Init
+  lcd.begin();
+  lcd.backlight();
+  lcd.setCursor(0,0); lcd.print("Initializing...");
 
-  // Initialize TCS34725 sensors
-  if (!debitSensor.begin(TCS34725_ADDRESS, &I2C_debit)) {
-    Serial.println("Failed to initialize debit TCS34725!");
-  } else {
-    Serial.println("Debit sensor initialized successfully");
-  }
-  if (!creditSensor.begin(TCS34725_ADDRESS, &I2C_credit)) {
-    Serial.println("Failed to initialize credit TCS34725!");
-  } else {
-    Serial.println("Credit sensor initialized successfully");
-  }
+  // Sensors Init
+  I2C_debit.begin(13,14);
+  I2C_credit.begin(21,23);
 
-  // Connect WiFi
+  if (!debitSensor.begin(TCS34725_ADDRESS, &I2C_debit)) Serial.println("Debit sensor failed!");
+  else Serial.println("Debit sensor ready");
+
+  if (!creditSensor.begin(TCS34725_ADDRESS, &I2C_credit)) Serial.println("Credit sensor failed!");
+  else Serial.println("Credit sensor ready");
+
+  // WiFi
   WiFi.begin(ssid, password);
   Serial.print("Connecting to WiFi");
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
+  while(WiFi.status()!=WL_CONNECTED){ delay(500); Serial.print("."); }
   Serial.println("\nConnected! IP: " + WiFi.localIP().toString());
 
-  // Configure time
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer1, ntpServer2, ntpServer3);
 
-  // Initialize Firebase
-  config.api_key = API_KEY;
-  config.database_url = DATABASE_URL;
-  config.token_status_callback = tokenStatusCallback;
-  config.signer.test_mode = true; // anonymous login
-  Firebase.begin(&config, &auth);
-  Firebase.reconnectWiFi(true);
-  Serial.println("Firebase initialized");
+  // Supabase Init
+  supabaseClient.begin();
 
-  // Wait for Firebase to be ready (which implies authenticated if test_mode is true)
-  unsigned long startMillis = millis();
-  while (!Firebase.ready()) {
-    Serial.print(".");
-    delay(500);
-    if (millis() - startMillis > 10000) { // 10 second timeout
-      Serial.println("\nFirebase initialization timed out!");
-      break;
-    }
-  }
-  if (Firebase.ready()) {
-    Serial.println("\nFirebase is ready and authenticated (anonymous mode).");
-  } else {
-    Serial.println("\nFirebase is NOT ready after timeout. Please check your WiFi connection and Firebase configuration.");
-  }
-  
-  // Ensure the user's transaction path exists as an object in Firebase
-  // This prevents 'Bad request' if the path is currently a primitive value (e.g., empty string)
-  String userTransactionsPath = "transactions/esp/" + userId;
-  if (!Firebase.RTDB.getJSON(&fbdo, userTransactionsPath.c_str())) {
-    // If getJSON fails (e.g., path doesn't exist or is a primitive), set it to an empty JSON object
-    FirebaseJson emptyJson;
-    if (Firebase.RTDB.setJSON(&fbdo, userTransactionsPath.c_str(), &emptyJson)) {
-      Serial.println("Firebase user transactions path initialized as object: " + userTransactionsPath);
-    } else {
-      Serial.println("Failed to initialize Firebase user transactions path: " + fbdo.errorReason());
-    }
-  }
+  lcd.clear();
+  lcd.setCursor(0,0); lcd.print("Ready!");
+  lcd.setCursor(0,1); lcd.print("Bal: Rs " + String(total,0));
 }
 
 // ------------------ Loop ------------------
 void loop() {
-  if (!Firebase.ready()) {
-    Serial.println("Waiting for Firebase to be ready...");
-    delay(1000);
-    return;
-  }
-
   unsigned long currentMillis = millis();
-  if (currentMillis - lastDetectionTime < detectionCooldown) return;
+  if(currentMillis - lastDetectionTime < detectionCooldown) return;
 
-  // Read debit sensor
-  uint16_t r1, g1, b1, c1;
-  debitSensor.getRawData(&r1, &g1, &b1, &c1);
+  uint16_t r1,g1,b1,c1,r2,g2,b2,c2;
+  debitSensor.getRawData(&r1,&g1,&b1,&c1);
+  creditSensor.getRawData(&r2,&g2,&b2,&c2);
 
-  // Read credit sensor
-  uint16_t r2, g2, b2, c2;
-  creditSensor.getRawData(&r2, &g2, &b2, &c2);
-
-  Serial.printf("\nDebit: R=%d, G=%d, B=%d | Credit: R=%d, G=%d, B=%d\n", r1, g1, b1, r2, g2, b2);
-
-  // Debug color detection
-  Serial.printf("Debit - 100: %s, 200: %s, 500: %s\n", 
-    isNote100(r1,g1,b1) ? "YES" : "NO",
-    isNote200(r1,g1,b1) ? "YES" : "NO", 
-    isNote500(r1,g1,b1) ? "YES" : "NO");
-  Serial.printf("Credit - 100: %s, 200: %s, 500: %s\n", 
-    isNote100(r2,g2,b2) ? "YES" : "NO",
-    isNote200(r2,g2,b2) ? "YES" : "NO", 
-    isNote500(r2,g2,b2) ? "YES" : "NO");
+  Serial.printf("\nDebit: R=%d G=%d B=%d | Credit: R=%d G=%d B=%d\n", r1,g1,b1,r2,g2,b2);
 
   // Debit detection
-  if (!debitNotePresent) {
-    if (isNote100(r1, g1, b1) && total >= 100) {
-      count_100++; total -= 100; lastNote="100 Rs Debited"; 
-      sendToFirebase("debit",100,"100 Rs Debited"); 
-      debitNotePresent=true;
-      Serial.println("100 Rs Debited!");
-    } else if (isNote200(r1, g1, b1) && total >= 200) {
-      count_200++; total -= 200; lastNote="200 Rs Debited"; 
-      sendToFirebase("debit",200,"200 Rs Debited"); 
-      debitNotePresent=true;
-      Serial.println("200 Rs Debited!");
-    } else if (isNote500(r1, g1, b1) && total >= 500) {
-      count_500++; total -= 500; lastNote="500 Rs Debited"; 
-      sendToFirebase("debit",500,"500 Rs Debited"); 
-      debitNotePresent=true;
-      Serial.println("500 Rs Debited!");
-    }
+  if(!debitNotePresent){
+    if(isNote100_debit(r1,g1,b1) && total>=100){ count_100++; total-=100; lastNote="100 Debited"; sendToSupabase("debit",100,lastNote); debitNotePresent=true; }
+    else if(isNote200_debit(r1,g1,b1) && total>=200){ count_200++; total-=200; lastNote="200 Debited"; sendToSupabase("debit",200,lastNote); debitNotePresent=true; }
+    else if(isNote500_debit(r1,g1,b1) && total>=500){ count_500++; total-=500; lastNote="500 Debited"; sendToSupabase("debit",500,lastNote); debitNotePresent=true; }
   }
 
   // Credit detection
-  if (!creditNotePresent) {
-    if (isNote100(r2, g2, b2)) { 
-      total += 100; lastNote="100 Rs Credited"; 
-      sendToFirebase("credit",100,"100 Rs Credited"); 
-      creditNotePresent=true;
-      Serial.println("100 Rs Credited!");
-    }
-    else if (isNote200(r2, g2, b2)) { 
-      total += 200; lastNote="200 Rs Credited"; 
-      sendToFirebase("credit",200,"200 Rs Credited"); 
-      creditNotePresent=true;
-      Serial.println("200 Rs Credited!");
-    }
-    else if (isNote500(r2, g2, b2)) { 
-      total += 500; lastNote="500 Rs Credited"; 
-      sendToFirebase("credit",500,"500 Rs Credited"); 
-      creditNotePresent=true;
-      Serial.println("500 Rs Credited!");
-    }
+  if(!creditNotePresent){
+    if(isNote100_credit(r2,g2,b2)){ total+=100; lastNote="100 Credited"; sendToSupabase("credit",100,lastNote); creditNotePresent=true; }
+    else if(isNote200_credit(r2,g2,b2)){ total+=200; lastNote="200 Credited"; sendToSupabase("credit",200,lastNote); creditNotePresent=true; }
+    else if(isNote500_credit(r2,g2,b2)){ total+=500; lastNote="500 Credited"; sendToSupabase("credit",500,lastNote); creditNotePresent=true; }
   }
 
   // Reset note presence
-  if (!(isNote100(r1,g1,b1)||isNote200(r1,g1,b1)||isNote500(r1,g1,b1))) debitNotePresent=false;
-  if (!(isNote100(r2,g2,b2)||isNote200(r2,g2,b2)||isNote500(r2,g2,b2))) creditNotePresent=false;
+  if(!(isNote100_debit(r1,g1,b1)||isNote200_debit(r1,g1,b1)||isNote500_debit(r1,g1,b1))) debitNotePresent=false;
+  if(!(isNote100_credit(r2,g2,b2)||isNote200_credit(r2,g2,b2)||isNote500_credit(r2,g2,b2))) creditNotePresent=false;
 
-  lastDetectionTime = currentMillis;
+  lastDetectionTime=currentMillis;
 
-  Serial.printf("Balance: Rs %.2f | 100s: %d 200s: %d 500s: %d\n", total, count_100, count_200, count_500);
-  delay(500);
+  Serial.printf("Balance: Rs %.2f | 100:%d 200:%d 500:%d\n", total,count_100,count_200,count_500);
+
+  updateLCD(); // Display balance + counts
+  delay(10);
 }
