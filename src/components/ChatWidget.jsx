@@ -117,9 +117,10 @@ const ChatWidget = ({ catchyLine = "Hi there! Have a question?", agentImage = "/
       </AnimatePresence>
 
       {/* Chat Panel */}
-      <AnimatePresence>
-        {isChatPanelOpen && (
+      <AnimatePresence mode="wait">
+        {isChatPanelOpen ? (
           <motion.div
+            key="chat-panel"
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -202,6 +203,7 @@ const ChatWidget = ({ catchyLine = "Hi there! Have a question?", agentImage = "/
         ) : (
           // Floating Agent Icon and optional Greeting Bubble
           <motion.button
+            key="floating-icon"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={toggleChatPanel}
