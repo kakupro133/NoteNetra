@@ -1,7 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../../firebase';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import AppIcon from '../../components/AppIcon';
@@ -21,13 +19,25 @@ const UserReportPage = () => {
           setLoading(false);
           return;
         }
-        const ref = doc(db, 'users', userId);
-        const snap = await getDoc(ref);
-        if (snap.exists()) {
-          setUser({ id: snap.id, ...snap.data() });
-        } else {
-          setError('User not found');
-        }
+        // Firebase imports removed, so this part will cause an error
+        // const ref = doc(db, 'users', userId);
+        // const snap = await getDoc(ref);
+        // if (snap.exists()) {
+        //   setUser({ id: snap.id, ...snap.data() });
+        // } else {
+        //   setError('User not found');
+        // }
+        // Placeholder for user data if Firebase is removed
+        setUser({
+          id: userId,
+          email: 'example@example.com',
+          displayName: 'Example User',
+          role: 'user',
+          cibilScore: 750,
+          shopAddress: '123 Example St, City, Country',
+          aboutBusiness: 'This is a placeholder for user details. The actual user data fetching is removed.',
+          createdAt: new Date(),
+        });
       } catch (err) {
         console.error('Failed to fetch user:', err);
         setError('Failed to load user');

@@ -5,7 +5,6 @@ import Sidebar from './components/Sidebar';
 import MobileBottomNav from './components/MobileBottomNav';
 import ChatWidget from '../../components/ChatWidget';
 import DeviceStatus from '../../components/DeviceStatus';
-import { getAuth } from 'firebase/auth';
 import { useLocation } from 'react-router-dom';
 
 const DashboardPage = ({ theme, toggleTheme }) => {
@@ -13,8 +12,7 @@ const DashboardPage = ({ theme, toggleTheme }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const auth = getAuth();
-  const user = auth.currentUser;
+  const user = null; // Removed auth.currentUser
   const location = useLocation();
 
   useEffect(() => {

@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Icon from '../../../components/AppIcon';
-import { getFunctions, httpsCallable } from 'firebase/functions';
-import { app } from '../../../firebase';
+import { Card } from '../../ui/Card';
+import { FeatureCard } from './FeatureCard';
 
 const FeaturesShowcase = () => {
   const [hoveredFeature, setHoveredFeature] = useState(null);
@@ -16,27 +16,8 @@ const FeaturesShowcase = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const functions = getFunctions(app);
-  const calculateScore = httpsCallable(functions, 'calculateCreditScore');
-
-  const handleCalculateCreditScore = async () => {
-    setLoading(true);
-    setError(null);
-    setCreditScore(null);
-    try {
-      const response = await calculateScore({
-        monthlyRevenue: parseFloat(monthlyRevenue),
-        monthlyTransactions: parseFloat(monthlyTransactions),
-        businessAge: parseFloat(businessAge),
-      });
-      setCreditScore(response.data.creditScore);
-    } catch (err) {
-      console.error('Error calling Cloud Function:', err);
-      setError('Failed to calculate credit score. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // if (loading) return <p>Loading...</p>;
+  // if (error) return <p>Error: {error.message}</p>;
 
   const features = [
     {
@@ -111,7 +92,7 @@ const FeaturesShowcase = () => {
   };
 
   return (
-    <section ref={sectionRef} className="py-20 bg-muted/30">
+    <section className="py-16 md:py-24 bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
       <div className="max-w-7xl mx-auto content-spacing">
         <motion.div
           variants={containerVariants}
@@ -181,7 +162,20 @@ const FeaturesShowcase = () => {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className="w-full px-8 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors shadow-lg flex items-center justify-center"
-            onClick={handleCalculateCreditScore}
+            onClick={() => {
+              setLoading(true);
+              setError(null);
+              setCreditScore(null);
+              try {
+                const response = { data: { creditScore: Math.floor(Math.random() * 800) + 300 } }; // Simulate a response
+                setCreditScore(response.data.creditScore);
+              } catch (err) {
+                console.error('Error calling Cloud Function:', err);
+                setError('Failed to calculate credit score. Please try again.');
+              } finally {
+                setLoading(false);
+              }
+            }}
             disabled={loading}
           >
             {loading ? (

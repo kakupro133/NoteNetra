@@ -11,7 +11,6 @@ import FeaturesPage from './pages/features-page';
 import LoginPage from './pages/login-page';
 import RegisterPage from './pages/register-page';
 import ProtectedRoute from './components/ProtectedRoute';
-import FirebaseDemo from './pages/firebase-demo';
 import AdminPanel from './pages/admin-panel';
 import AdminLoginPage from './pages/admin-login';
 import UserReportPage from './pages/user-report';
@@ -43,7 +42,6 @@ const Routes = ({ theme, toggleTheme }) => {
         <Route path="/features-page" element={<FeaturesPage />} />
         <Route path="/login-page" element={<LoginPage />} />
         <Route path="/register-page" element={<RegisterPage />} />
-        <Route path="/firebase-demo" element={<FirebaseDemo />} />
         <Route path="/dashboard" element={<ProtectedRoute><DashboardPage theme={theme} toggleTheme={toggleTheme} /></ProtectedRoute>} >
           <Route index element={<OverviewView />} /> {/* Default child route for /dashboard */}
           <Route path="transactions" element={<TransactionsView />} />

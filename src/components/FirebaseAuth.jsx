@@ -1,12 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { auth, db } from '../firebase';
-import { 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  signOut, 
-  onAuthStateChanged 
-} from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
 
 const FirebaseAuth = () => {
   const [user, setUser] = useState(null);

@@ -1,16 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { db, auth } from '../../../firebase';
-import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, updateDoc, getDocs } from 'firebase/firestore';
-import { useAuthState } from 'react-firebase-hooks/auth';
 import { useParams } from 'react-router-dom';
 import AppIcon from '../../../components/AppIcon';
 import Input from '../../../components/ui/Input';
 import Button from '../../../components/ui/Button';
-import { Card } from '../../../components/ui/Card';
+import { Card, CardHeader, CardTitle, CardContent } from '../../ui/Card';
+import { Avatar, AvatarFallback, AvatarImage } from '../../ui/Avatar';
 
 const PrivateChatWindow = () => {
   const { chatId } = useParams(); // Get chat ID from URL parameters
-  const [user] = useAuthState(auth);
+  const [user] = useState({ uid: 'user123', displayName: 'Test User', email: 'test@example.com' }); // Dummy user
   const [newMessage, setNewMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const messagesEndRef = useRef(null);
@@ -21,28 +19,20 @@ const PrivateChatWindow = () => {
 
     // Fetch all users once to map UIDs to display names
     const fetchAllUsers = async () => {
-      const usersCollection = collection(db, 'users');
-      const usersSnapshot = await getDocs(usersCollection);
-      const usersData = {};
-      usersSnapshot.forEach(doc => {
-        usersData[doc.id] = doc.data();
-      });
-      setAllUsers(usersData);
+      // This part would typically fetch from Firebase
+      // For now, we'll just set a dummy user for demonstration
+      setAllUsers({ 'bot': { displayName: 'Chatbot', email: 'bot@example.com' } });
     };
     fetchAllUsers();
 
-    const q = query(
-      collection(db, 'chats', chatId, 'messages'),
-      orderBy('timestamp')
-    );
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setMessages(snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })));
-    });
+    // Dummy messages for demonstration without Firebase
+    const dummyMessages = [
+      { id: 'msg1', text: 'Hi there!', senderId: 'bot', timestamp: new Date() },
+      { id: 'msg2', text: 'How can I help you?', senderId: 'bot', timestamp: new Date() },
+      { id: 'msg3', text: 'I have a question about my account.', senderId: 'user123', timestamp: new Date() },
+    ];
+    setMessages(dummyMessages);
 
-    return () => unsubscribe();
   }, [user, chatId]);
 
   useEffect(() => {
@@ -53,25 +43,26 @@ const PrivateChatWindow = () => {
     e.preventDefault();
     if (newMessage.trim() === '' || !user || !chatId) return;
 
-    await addDoc(collection(db, 'chats', chatId, 'messages'), {
+    // This part would typically add to Firebase
+    // For now, we'll just add to the dummy messages
+    const newDummyMessage = {
+      id: `msg${messages.length + 1}`,
       text: newMessage,
       senderId: user.uid,
       senderName: user.displayName || user.email, // Use displayName, fallback to email
-      timestamp: serverTimestamp(),
-    });
+      timestamp: new Date(),
+    };
+    setMessages(prevMessages => [...prevMessages, newDummyMessage]);
 
     // Update parent chat document with last message info
-    const chatRef = doc(db, 'chats', chatId);
-    await updateDoc(chatRef, {
-      lastMessageAt: serverTimestamp(),
-      lastMessageText: newMessage,
-    });
+    // This part would typically update Firebase
+    console.log(`Simulating update for chatId: ${chatId} with message: ${newMessage}`);
 
     setNewMessage('');
   };
 
   return (
-    <div className="flex flex-col h-full bg-background text-foreground">
+    <div className="flex flex-col h-full bg-card text-card-foreground shadow-lg rounded-lg">
       <header className="bg-card p-4 border-b border-border flex items-center justify-between">
         <h1 className="text-xl font-bold">Private Chat</h1>
         {/* You might want to display the other participant's name/email here */}

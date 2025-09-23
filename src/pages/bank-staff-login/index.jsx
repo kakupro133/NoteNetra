@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { signInWithEmailAndPassword, onAuthStateChanged, createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { auth, db } from '../../firebase';
+import { useForm } from 'react-hook-form';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/Card';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import AppIcon from '../../components/AppIcon';
@@ -106,7 +105,7 @@ const BankStaffLoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
+    <section className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
       <div className="max-w-md w-full space-y-8 p-10 bg-card rounded-xl shadow-lg border border-border">
         <div className="text-center">
           <CustomLogo design="custom" showText className="mx-auto h-12 w-auto mb-4" />
@@ -174,7 +173,7 @@ const BankStaffLoginPage = () => {
           </div>
         </form>
       </div>
-    </div>
+    </section>
   );
 };
 

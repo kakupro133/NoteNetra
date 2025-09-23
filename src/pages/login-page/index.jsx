@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Logo from '../../components/ui/Logo';
@@ -24,49 +23,14 @@ const LoginPage = () => {
     window.scrollTo(0, 0);
   }, []);
 
-  const auth = getAuth();
-
-  const onSubmit = async (data) => {
-    setIsLoading(true);
-    try {
-      await signInWithEmailAndPassword(auth, data.email, data.password);
-      navigate('/dashboard');
-    } catch (error) {
-      console.error('Login error:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    setIsLoading(true);
-    const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: 'select_account' });
-    try {
-      // Prefer redirect to avoid popup issues
-      await signInWithRedirect(auth, provider);
-    } catch (error) {
-      console.error('Google login error:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Complete sign-in if we came back from a redirect flow
-  useEffect(() => {
-    let isMounted = true;
-    // Ensure persistent session
-    setPersistence(auth, browserLocalPersistence).catch((e) => console.error('Set persistence error:', e));
-    getRedirectResult(auth)
-      .then((result) => {
-        if (!isMounted) return;
-        if (result?.user) {
-          navigate('/dashboard');
-        }
-      })
-      .catch((err) => console.error('Google redirect result error:', err));
-    return () => { isMounted = false; };
-  }, [auth, navigate]);
+  // Handle Google Sign-In (no change needed for now if not using Google Auth directly)
+  // const handleGoogleSignIn = async () => {
+  //   try {
+  //     await signInWithRedirect(auth, googleProvider);
+  //   } catch (error) {
+  //     console.error("Google sign-in error:", error);
+  //   }
+  // };
 
   return (
     <>

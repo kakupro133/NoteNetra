@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { database } from '../../../firebase';
-import { ref, onValue } from 'firebase/database';
 import Icon from '../../../components/AppIcon';
 import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
 import Button from '../../../components/ui/Button';
-import { getAuth } from 'firebase/auth';
+import { format, parseISO } from 'date-fns';
 import { demoData, getTransactionStats } from '../../../utils/demoData';
 
 const TransactionsView = () => {
@@ -13,61 +11,61 @@ const TransactionsView = () => {
   const [filterType, setFilterType] = useState('all');
   const [dateRange, setDateRange] = useState('7days');
   const [transactions, setTransactions] = useState(demoData.transactions);
-  const auth = getAuth();
-  const user = auth.currentUser;
+  // const auth = getAuth();
+  // const user = auth.currentUser;
 
-  useEffect(() => {
-    if (user) {
-      // Fetch from ESP32 path: transactions/esp
-      const transactionsRef = ref(database, `transactions/esp`);
-      const unsubscribe = onValue(transactionsRef, (snapshot) => {
-        const data = snapshot.val();
-        const loadedTransactions = [];
-        if (data) {
-          Object.keys(data).forEach((key) => {
-            const transaction = data[key];
+  // useEffect(() => {
+  //   if (user) {
+  //     // Fetch from ESP32 path: transactions/esp
+  //     const transactionsRef = ref(database, `transactions/esp`);
+  //     const unsubscribe = onValue(transactionsRef, (snapshot) => {
+  //       const data = snapshot.val();
+  //       const loadedTransactions = [];
+  //       if (data) {
+  //         Object.keys(data).forEach((key) => {
+  //           const transaction = data[key];
             
-            // Handle the ESP32 data structure
-            if (transaction && transaction.time) {
-              // Parse the timestamp from ESP32 format
-              const timestamp = transaction.time;
-              const datePart = timestamp.split(' ')[0]; // Get date part
-              const timePart = timestamp.split(' ')[1]; // Get time part
+  //           // Handle the ESP32 data structure
+  //           if (transaction && transaction.time) {
+  //             // Parse the timestamp from ESP32 format
+  //             const timestamp = transaction.time;
+  //             const datePart = timestamp.split(' ')[0]; // Get date part
+  //             const timePart = timestamp.split(' ')[1]; // Get time part
               
-              loadedTransactions.push({
-                id: key, 
-                date: datePart,
-                time: timePart,
-                customer: `ESP32 Device`, 
-                amount: transaction.amount || 0,
-                type: transaction.mode || 'cash', 
-                transactionType: transaction.type || 'unknown', 
-                status: 'completed', 
-                items: `${transaction.amount} Rs ${transaction.type === 'credit' ? 'Added' : 'Removed'}`,
-                userID: transaction.userID || 'ESP32'
-              });
-            }
-          });
+  //             loadedTransactions.push({
+  //               id: key, 
+  //               date: datePart,
+  //               time: timePart,
+  //               customer: `ESP32 Device`, 
+  //               amount: transaction.amount || 0,
+  //               type: transaction.mode || 'cash', 
+  //               transactionType: transaction.type || 'unknown', 
+  //               status: 'completed', 
+  //               items: `${transaction.amount} Rs ${transaction.type === 'credit' ? 'Added' : 'Removed'}`,
+  //               userID: transaction.userID || 'ESP32'
+  //             });
+  //           }
+  //         });
           
-          // Sort by timestamp (newest first)
-          loadedTransactions.sort((a, b) => {
-            const dateA = new Date(`${a.date} ${a.time}`);
-            const dateB = new Date(`${b.date} ${b.time}`);
-            return dateB - dateA;
-          });
-        }
-        setTransactions(loadedTransactions);
-      }, (error) => {
-        console.error("Error fetching transactions:", error);
-        // Fallback to demo data if ESP32 data is not available
-        setTransactions(demoData.transactions);
-      });
+  //         // Sort by timestamp (newest first)
+  //         loadedTransactions.sort((a, b) => {
+  //           const dateA = new Date(`${a.date} ${a.time}`);
+  //           const dateB = new Date(`${b.date} ${b.time}`);
+  //           return dateB - dateA;
+  //         });
+  //       }
+  //       setTransactions(loadedTransactions);
+  //     }, (error) => {
+  //       console.error("Error fetching transactions:", error);
+  //       // Fallback to demo data if ESP32 data is not available
+  //       setTransactions(demoData.transactions);
+  //     });
 
-      return () => {
-        unsubscribe();
-      };
-    }
-  }, [user]);
+  //     return () => {
+  //       unsubscribe();
+  //     };
+  //   }
+  // }, [user]);
 
   const typeOptions = [
     { value: 'all', label: 'All Modes' },

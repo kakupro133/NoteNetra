@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { db, auth } from '../../firebase';
-import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, getDocs, where } from 'firebase/firestore';
-import { useAuthState } from 'react-firebase-hooks/auth';
 import { useNavigate } from 'react-router-dom';
 import AppIcon from '../../components/AppIcon';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
+import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/Avatar';
 
 const CommunityChat = () => {
-  const [user] = useAuthState(auth);
+  const [user] = useState({ uid: 'u1', displayName: 'Test User', email: 'test@example.com' }); // Dummy user
   const [newMessage, setNewMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const messagesEndRef = useRef(null);
@@ -24,25 +23,22 @@ const CommunityChat = () => {
 
     // Fetch all users once to map UIDs to display names
     const fetchAllUsers = async () => {
-      const usersCollection = collection(db, 'users');
-      const usersSnapshot = await getDocs(usersCollection);
-      const usersData = {};
-      usersSnapshot.forEach(doc => {
-        usersData[doc.id] = doc.data();
-      });
+      const usersData = {
+        'u1': { uid: 'u1', displayName: 'Test User', email: 'test@example.com' },
+        'u2': { uid: 'u2', displayName: 'Alice', email: 'alice@example.com' },
+        'u3': { uid: 'u3', displayName: 'Bob', email: 'bob@example.com' },
+      };
       setAllUsers(usersData);
     };
     fetchAllUsers();
 
-    const q = query(collection(db, 'messages'), orderBy('timestamp'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setMessages(snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })));
-    });
+    // Dummy messages for demonstration
+    const dummyMessages = [
+      { id: 'm1', text: 'Hello everyone!', senderName: 'Alice', timestamp: new Date() },
+      { id: 'm2', text: 'Welcome to the community chat!', senderName: 'Bob', timestamp: new Date(Date.now() - 60000) },
+    ];
+    setMessages(dummyMessages);
 
-    return () => unsubscribe();
   }, [user]);
 
   useEffect(() => {
@@ -53,13 +49,16 @@ const CommunityChat = () => {
     e.preventDefault();
     if (newMessage.trim() === '' || !user) return;
 
-    await addDoc(collection(db, 'messages'), {
+    // In a real app, you would add the message to your backend/Firebase
+    console.log("Sending message:", newMessage);
+    const newMessageObj = {
+      id: `m${messages.length + 1}`, // Generate a unique ID
       text: newMessage,
       senderId: user.uid,
       senderName: user.displayName || user.email, // Use displayName, fallback to email
-      timestamp: serverTimestamp(),
-    });
-
+      timestamp: new Date(),
+    };
+    setMessages(prevMessages => [...prevMessages, newMessageObj]);
     setNewMessage('');
   };
 
@@ -87,30 +86,9 @@ const CommunityChat = () => {
     try {
       const participants = [user.uid, targetSenderId].sort();
       console.log("Participants for private chat:", participants);
-      const existingChatQuery = query(
-        collection(db, 'chats'),
-        where('participants', '==', participants)
-      );
-
-      const querySnapshot = await getDocs(existingChatQuery);
-      console.log("Existing chat query snapshot:", querySnapshot.empty ? "No existing chat." : querySnapshot.docs[0].id);
-
-      let chatId;
-      if (!querySnapshot.empty) {
-        chatId = querySnapshot.docs[0].id;
-      } else {
-        console.log("Creating new chat...");
-        const newChatRef = await addDoc(collection(db, 'chats'), {
-          participants: participants,
-          createdAt: serverTimestamp(),
-          lastMessageAt: serverTimestamp(),
-          lastMessageText: '',
-        });
-        chatId = newChatRef.id;
-        console.log("New chat created with ID:", chatId);
-      }
-
-      setShowPopupMenu(false);
+      // In a real app, you would query your backend/Firebase for existing chats
+      // For this dummy app, we'll just navigate to a dummy chat
+      const chatId = `chat-${participants.join('-')}`; // Simple ID generation
       console.log("Navigating to private chat:", `/dashboard/private-chat/${chatId}`);
       navigate(`/dashboard/private-chat/${chatId}`);
     } catch (error) {
@@ -150,7 +128,7 @@ const CommunityChat = () => {
 
 
   return (
-    <div className="flex flex-col h-full bg-background text-foreground relative"> {/* Added relative for popup positioning */}
+    <Card className="h-full flex flex-col">
       {/* Remove the header as DashboardPage will provide the layout */}
       {/*
       <header className="bg-card p-4 border-b border-border flex items-center justify-between">
@@ -226,7 +204,7 @@ const CommunityChat = () => {
           </Button>
         </div>
       )}
-    </div>
+    </Card>
   );
 };
 

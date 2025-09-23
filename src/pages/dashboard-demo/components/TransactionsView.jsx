@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { database } from '../../../firebase';
-import { ref, onValue } from 'firebase/database';
 import Icon from '../../../components/AppIcon';
 import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
 import Button from '../../../components/ui/Button';
 import { demoData, getTransactionStats } from '../../../utils/demoData';
+import { format, parseISO } from 'date-fns';
 
 const TransactionsView = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -15,54 +14,12 @@ const TransactionsView = () => {
   const userId = "8Z642cHB2pXTGv8BnCbrzMYGWz23"; // Updated user ID to match Firebase
 
   useEffect(() => {
-    // Fetch from ESP32 path: transactions/esp
-    const transactionsRef = ref(database, `transactions/esp`);
-    
-    const unsubscribe = onValue(transactionsRef, (snapshot) => {
-      const data = snapshot.val();
-      const loadedTransactions = [];
-      if (data) {
-        Object.keys(data).forEach((key) => {
-          const transaction = data[key];
-          
-          // Handle the ESP32 data structure
-          if (transaction && transaction.time) {
-            // Parse the timestamp from ESP32 format
-            const timestamp = transaction.time;
-            const datePart = timestamp.split(' ')[0]; // Get date part
-            const timePart = timestamp.split(' ')[1]; // Get time part
-            
-            loadedTransactions.push({
-              id: key, 
-              date: datePart,
-              time: timePart,
-              customer: `ESP32 Device`, 
-              amount: transaction.amount || 0,
-              type: transaction.mode || 'cash', // Use 'mode' for payment type (Cash, UPI, Card)
-              transactionType: transaction.type || 'unknown', // 'credit' or 'debit'
-              status: 'completed', 
-              items: `${transaction.amount} Rs ${transaction.type === 'credit' ? 'Added' : 'Removed'}`
-            });
-          }
-        });
-        
-        // Sort by timestamp (newest first)
-        loadedTransactions.sort((a, b) => {
-          const dateA = new Date(`${a.date} ${a.time}`);
-          const dateB = new Date(`${b.date} ${b.time}`);
-          return dateB - dateA;
-        });
-      }
-      setTransactions(loadedTransactions);
-    }, (error) => {
-      console.error("Error fetching transactions:", error);
-      // Fallback to demo data if ESP32 data is not available
-      setTransactions(demoData.transactions);
-    });
-
-    return () => {
-      unsubscribe();
-    };
+    // Dummy data for demonstration
+    const dummyTransactions = [
+      { id: 1, date: '2025-09-20', time: '10:00:00', customer: 'Demo User', amount: 500, type: 'credit', transactionType: 'cash', status: 'completed', items: '500 Rs Added' },
+      { id: 2, date: '2025-09-19', time: '15:30:00', customer: 'Demo User', amount: 100, type: 'debit', transactionType: 'cash', status: 'completed', items: '100 Rs Removed' },
+    ];
+    setTransactions(dummyTransactions);
   }, [userId]);
 
   const typeOptions = [

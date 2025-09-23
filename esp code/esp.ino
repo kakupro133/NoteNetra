@@ -5,7 +5,6 @@
 #include <time.h>
 #include "SupabaseArduino.h"
 
-// ------------------ WiFi ------------------
 const char *ssid = "as";
 const char *password = "12345678";
 
@@ -22,8 +21,7 @@ String userId = "fxQNVL1gFaeGdGfWUoIi2jNoVJd2";
 // Debit sensor (SDA=13, SCL=14)
 TwoWire I2C_debit = TwoWire(0);
 Adafruit_TCS34725 debitSensor = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_50MS, TCS34725_GAIN_4X);
-
-// Credit sensor (SDA=21, SCL=23)
+ // Credit sensor (SDA=21, SCL=23)
 TwoWire I2C_credit = TwoWire(1);
 Adafruit_TCS34725 creditSensor = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_50MS, TCS34725_GAIN_4X);
 

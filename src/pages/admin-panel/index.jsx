@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { db, auth } from '../../firebase';
-import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { Card } from '../../components/ui/Card';
 import AppIcon from '../../components/AppIcon';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/Table';
 
 const AdminPanel = () => {
   const [user] = useAuthState(auth);
@@ -81,6 +80,13 @@ const AdminPanel = () => {
       </div>
     );
   }
+
+  // Dummy user data for demonstration
+  const dummyUsers = [
+    { id: 'user1', name: 'Alice Smith', email: 'alice@example.com', role: 'user', status: 'active' },
+    { id: 'user2', name: 'Bob Johnson', email: 'bob@example.com', role: 'user', status: 'inactive' },
+    { id: 'admin1', name: 'Charlie Admin', email: 'charlie@example.com', role: 'admin', status: 'active' },
+  ];
 
   return (
     <div className="min-h-screen bg-background p-8 pt-24">

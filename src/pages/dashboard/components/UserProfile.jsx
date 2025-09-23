@@ -1,15 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../../../firebase';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/Card';
+import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/Card';
 import Button from '../../../components/ui/Button';
 import AppIcon from '../../../components/AppIcon';
-import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth } from '../../../firebase';
-import { collection, query, where, addDoc, serverTimestamp, getDocs } from 'firebase/firestore';
-import Input from '../../../components/ui/Input';
-import { updateEmail, updatePassword, updateProfile, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import useTheme from '../../../hooks/useTheme';
 
 const UserProfile = () => {

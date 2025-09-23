@@ -2,21 +2,17 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
-import { getAuth, signOut } from 'firebase/auth';
+import CustomLogo from '../../components/ui/CustomLogo';
+import LogoSelector from '../../components/ui/LogoSelector';
 import useTheme from '../../../hooks/useTheme';
 import { LOGO_CONFIG } from '../../../utils/logoConfig';
 
 const Header = ({ user, theme, toggleTheme }) => {
   const navigate = useNavigate();
-  const auth = getAuth();
 
+  // Function to handle logout
   const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      navigate('/login-page');
-    } catch (error) {
-      console.error("Error signing out:", error);
-    }
+    navigate('/login-page');
   };
 
   return (

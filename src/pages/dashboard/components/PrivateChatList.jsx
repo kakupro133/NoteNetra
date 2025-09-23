@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { db, auth } from '../../../firebase';
-import { collection, query, where, onSnapshot, getDocs, addDoc } from 'firebase/firestore';
-import { useAuthState } from 'react-firebase-hooks/auth';
 import { useNavigate } from 'react-router-dom';
-import { Card } from '../../../components/ui/Card'; // Corrected import path and named import
+import { Card } from '../../ui/Card';
+import { Avatar, AvatarFallback, AvatarImage } from '../../ui/Avatar';
 import Button from '../../../components/ui/Button'; // Corrected import path and default import
 import Input from '../../../components/ui/Input'; // Corrected import path and default import
 import AppIcon from '../../../components/AppIcon';
@@ -79,8 +77,17 @@ const PrivateChatList = () => {
     (u.displayName && u.displayName.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
+  // if (loading || !user) return <p>Loading chat list...</p>;
+  // if (error) return <p>Error: {error.message}</p>;
+
+  // Dummy chat data
+  const dummyChats = [
+    { id: 'chat1', name: 'Customer Support', lastMessage: 'Hello, how can I help you?', timestamp: new Date() },
+    { id: 'chat2', name: 'Admin Team', lastMessage: 'Meeting at 3 PM', timestamp: new Date(Date.now() - 3600000) },
+  ];
+
   return (
-    <div className="flex flex-col h-full p-4">
+    <div className="flex flex-col h-full bg-card text-card-foreground shadow-lg rounded-lg">
       <h2 className="text-2xl font-bold mb-4">Private Messages</h2>
 
       <div className="mb-4">

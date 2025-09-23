@@ -2,19 +2,14 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
-import { getAuth, signOut } from 'firebase/auth';
+import { cn } from '../../../utils/cn';
+import CustomLogo from '../../../components/ui/CustomLogo';
 
 const Sidebar = ({ isCollapsed, onToggleCollapse, user }) => {
   const navigate = useNavigate();
-  const auth = getAuth();
 
   const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      navigate('/login-page');
-    } catch (error) {
-      console.error("Error signing out:", error);
-    }
+    navigate('/login-page');
   };
   const menuItems = [
     { id: 'overview', label: 'Overview', icon: 'BarChart3', path: '/dashboard' }, // Use absolute path for overview
