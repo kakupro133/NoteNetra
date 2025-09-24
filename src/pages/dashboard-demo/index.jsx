@@ -1,29 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import DemoHeader from './components/DemoHeader';
-import DemoSidebar from './components/DemoSidebar';
+import Header from '../dashboard/components/Header';
+import Sidebar from '../dashboard/components/Sidebar';
 import OverviewView from './components/OverviewView';
 import TransactionsView from './components/TransactionsView';
 import CreditScoreView from './components/CreditScoreView';
 import ReportsView from './components/ReportsView';
 import GuidedTour from './components/GuidedTour';
 import MobileBottomNav from './components/MobileBottomNav';
-import DeviceStatus from '../../components/DeviceStatus'; // Import DeviceStatus
+import DeviceStatus from '../../components/DeviceStatus';
+import ChatWidget from '../../components/ChatWidget';
+import PrivateChatList from '../dashboard/components/PrivateChatList';
+import PrivateChatWindow from '../dashboard/components/PrivateChatWindow';
+import UserProfile from '../dashboard/components/UserProfile';
+import useTheme from '../../hooks/useTheme';
 
 const DashboardDemo = () => {
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
   const [activeView, setActiveView] = useState('overview');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [showGuidedTour, setShowGuidedTour] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const deviceId = "8Z642cHB2pXTGv8BnCbrzMYGWz23"; // Updated device ID to match Firebase
+  const deviceId = "ESP32_DevKitV1"; // Generic dummy ID
+  const user = { uid: 'demoUser', displayName: 'Demo User', email: 'demo@example.com' }; // Dummy user for demo
 
   useEffect(() => {
     console.log('DashboardDemo: Component mounted');
     
-    // Check if user is on mobile
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
       if (window.innerWidth < 768) {
@@ -34,13 +40,11 @@ const DashboardDemo = () => {
     checkMobile();
     window.addEventListener('resize', checkMobile);
 
-    // Simulate loading for demo effect
     const loadingTimer = setTimeout(() => {
       setIsLoading(false);
       console.log('DashboardDemo: Loading completed');
     }, 1500);
 
-    // Auto-start tour for first-time visitors
     const hasSeenTour = localStorage.getItem('noteNetra-demo-tour-seen');
     if (!hasSeenTour) {
       setTimeout(() => {
@@ -89,6 +93,12 @@ const DashboardDemo = () => {
           return <CreditScoreView />;
         case 'reports':
           return <ReportsView />;
+        case 'private-chat-list':
+          return <PrivateChatList />;
+        case 'private-chat-window':
+          return <PrivateChatWindow />;
+        case 'user-profile':
+          return <UserProfile />;
         default:
           return (
             <OverviewView>
@@ -110,17 +120,17 @@ const DashboardDemo = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-dark-bg-primary flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 bg-dark-accent-primary rounded-lg flex items-center justify-center mb-4 mx-auto animate-pulse">
+          <div className="w-16 h-16 bg-primary rounded-lg flex items-center justify-center mb-4 mx-auto animate-pulse">
             <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-              <div className="w-4 h-4 bg-dark-accent-primary rounded animate-spin"></div>
+              <div className="w-4 h-4 bg-primary rounded animate-spin"></div>
             </div>
           </div>
-          <h2 className="text-xl font-semibold text-dark-text-primary mb-2">Loading NoteNetra Dashboard</h2>
-          <p className="text-dark-text-secondary">Preparing your demo experience...</p>
-          <div className="w-64 bg-dark-bg-tertiary rounded-full h-2 mx-auto mt-4">
-            <div className="bg-dark-accent-primary h-2 rounded-full animate-pulse" style={{ width: '75%' }}></div>
+          <h2 className="text-xl font-semibold text-foreground mb-2">Loading NoteNetra Demo</h2>
+          <p className="text-muted-foreground">Preparing your demo experience...</p>
+          <div className="w-64 bg-muted rounded-full h-2 mx-auto mt-4">
+            <div className="bg-primary h-2 rounded-full animate-pulse" style={{ width: '75%' }}></div>
           </div>
         </div>
       </div>
@@ -129,13 +139,13 @@ const DashboardDemo = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-dark-bg-primary flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center p-8">
-          <h2 className="text-xl font-semibold text-red-400 mb-4">Demo Error</h2>
-          <p className="text-dark-text-secondary mb-4">{error}</p>
+          <h2 className="text-xl font-semibold text-red-500 mb-4">Demo Error</h2>
+          <p className="text-muted-foreground mb-4">{error}</p>
           <button 
             onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-dark-accent-primary text-white rounded-lg"
+            className="px-4 py-2 bg-primary text-white rounded-lg"
           >
             Reload Demo
           </button>
@@ -145,26 +155,25 @@ const DashboardDemo = () => {
   }
 
   return (
-    <div className="min-h-screen bg-dark-bg-primary flex flex-col">
-      {/* Demo Header */}
-      <DemoHeader 
-        onExitDemo={handleExitDemo}
-        onStartTour={handleStartTour}
+    <div className="min-h-screen bg-background flex flex-col">
+      <Header 
+        user={user} 
+        theme={theme} 
+        toggleTheme={toggleTheme} 
+        onExitDemo={handleExitDemo} // Pass handleExitDemo to Header
       />
       
-      {/* Main Content Area */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Desktop Sidebar */}
         {!isMobile && (
-          <DemoSidebar
+          <Sidebar
             activeView={activeView}
             onViewChange={handleViewChange}
             isCollapsed={isSidebarCollapsed}
             onToggleCollapse={toggleSidebar}
+            user={user}
           />
         )}
 
-        {/* Main Content */}
         <main className={`flex-1 overflow-auto ${isMobile ? 'pb-16' : ''}`}>
           <div className="min-h-full">
             {activeView === 'overview' ? (
@@ -178,14 +187,14 @@ const DashboardDemo = () => {
         </main>
       </div>
 
-      {/* Mobile Bottom Navigation */}
       <MobileBottomNav
         activeView={activeView}
         onViewChange={handleViewChange}
         isVisible={isMobile}
       />
 
-      {/* Guided Tour */}
+      <ChatWidget />
+
       <GuidedTour
         isActive={showGuidedTour}
         onClose={() => setShowGuidedTour(false)}
